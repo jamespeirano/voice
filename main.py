@@ -91,6 +91,7 @@ def gemini_ask(prompt):
 def main():
     print("Hold F8 to record, release to transcribe and type at cursor...")
     print("Hold F7 to record and send highlighted text + voice to Gemini...")
+    print("Hold f23 to do the same as F7, but with a custom prompt from custom_prompt1.txt...")
     fs = 16000
     while True:
         if keyboard.is_pressed('f8'):
@@ -142,10 +143,43 @@ def main():
                 print("Sending to Gemini...")
                 try:
                     gemini_response = gemini_ask(prompt)
+                    print("Gemini response:", gemini_response) 
+                except Exception as e:
+                    print("Error from Gemini:", e)
+            else:
+                print("No audio captured for Gemini.")
+        elif keyboard.is_pressed('f23'):
+            keyboard.wait('f23')
+            print("Listening for Gemini with custom prompt... (release f23 to stop)")
+            audio = []
+            recording = True
+
+            def callback(indata, frames, time_info, status):
+                if recording:
+                    audio.append(indata.copy())
+
+            with sd.InputStream(samplerate=fs, channels=1, dtype='int16', callback=callback):
+                while keyboard.is_pressed('f23'):
+                    sd.sleep(50)
+                recording = False
+            print("Transcribing audio for Gemini...")
+            highlighted_text = get_highlighted_text()
+            custom_prompt = ""
+            try:
+                with open("custom_prompt1.txt", "r", encoding="utf-8") as f:
+                    custom_prompt = f.read().strip()
+            except Exception as e:
+                print("Could not read custom_prompt1.txt:", e)
+            if audio:
+                audio_np = np.concatenate(audio, axis=0)
+                voice_text = transcribe(audio_np, fs)
+                print("Highlighted text:", highlighted_text)
+                print("Voice said:", voice_text)
+                prompt = f"{custom_prompt}\n\nContext: {highlighted_text}\n\nUser says: {voice_text}"
+                print("Sending to Gemini with custom prompt...")
+                try:
+                    gemini_response = gemini_ask(prompt)
                     print("Gemini response:", gemini_response)
-                    # Optionally, type or copy the response:
-                    # pyautogui.typewrite(gemini_response)
-                    # pyperclip.copy(gemini_response)
                 except Exception as e:
                     print("Error from Gemini:", e)
             else:
