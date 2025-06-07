@@ -17,6 +17,9 @@ API_KEY = os.getenv("GROQ_API_KEY")
 MODEL = os.getenv("VOICE_MODEL")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL")
+HOTKEY1 = os.getenv("HOTKEY1", "f8")
+HOTKEY2 = os.getenv("HOTKEY2", "f7")
+HOTKEY3 = os.getenv("HOTKEY3", "f23")
 
 
 def save_wav(audio, fs):
@@ -89,14 +92,14 @@ def gemini_ask(prompt):
 
 
 def main():
-    print("Hold F8 to record, release to transcribe and type at cursor...")
-    print("Hold F7 to record and send highlighted text + voice to Gemini...")
-    print("Hold f23 to do the same as F7, but with a custom prompt from custom_prompt1.txt...")
+    print(f"Hold {HOTKEY1.upper()} to record, release to transcribe and type at cursor...")
+    print(f"Hold {HOTKEY2.upper()} to record and send highlighted text + voice to Gemini...")
+    print(f"Hold {HOTKEY3.upper()} to do the same as {HOTKEY2.upper()}, but with a custom prompt from custom_prompt1.txt...")
     fs = 16000
     while True:
-        if keyboard.is_pressed('f8'):
-            keyboard.wait('f8')
-            print("Listening... (release F8 to stop)")
+        if keyboard.is_pressed(HOTKEY1):
+            keyboard.wait(HOTKEY1)
+            print(f"Listening... (release {HOTKEY1.upper()} to stop)")
             audio = []
             recording = True
 
@@ -105,7 +108,7 @@ def main():
                     audio.append(indata.copy())
 
             with sd.InputStream(samplerate=fs, channels=1, dtype='int16', callback=callback):
-                while keyboard.is_pressed('f8'):
+                while keyboard.is_pressed(HOTKEY1):
                     sd.sleep(50)
                 recording = False
             print("Transcribing...")
@@ -118,9 +121,9 @@ def main():
                     pyautogui.typewrite(text)
             else:
                 print("No audio captured.")
-        elif keyboard.is_pressed('f7'):
-            keyboard.wait('f7')
-            print("Listening for Gemini... (release F7 to stop)")
+        elif keyboard.is_pressed(HOTKEY2):
+            keyboard.wait(HOTKEY2)
+            print(f"Listening for Gemini... (release {HOTKEY2.upper()} to stop)")
             audio = []
             recording = True
 
@@ -129,7 +132,7 @@ def main():
                     audio.append(indata.copy())
 
             with sd.InputStream(samplerate=fs, channels=1, dtype='int16', callback=callback):
-                while keyboard.is_pressed('f7'):
+                while keyboard.is_pressed(HOTKEY2):
                     sd.sleep(50)
                 recording = False
             print("Transcribing audio for Gemini...")
@@ -148,9 +151,9 @@ def main():
                     print("Error from Gemini:", e)
             else:
                 print("No audio captured for Gemini.")
-        elif keyboard.is_pressed('f23'):
-            keyboard.wait('f23')
-            print("Listening for Gemini with custom prompt... (release f23 to stop)")
+        elif keyboard.is_pressed(HOTKEY3):
+            keyboard.wait(HOTKEY3)
+            print(f"Listening for Gemini with custom prompt... (release {HOTKEY3.upper()} to stop)")
             audio = []
             recording = True
 
@@ -159,7 +162,7 @@ def main():
                     audio.append(indata.copy())
 
             with sd.InputStream(samplerate=fs, channels=1, dtype='int16', callback=callback):
-                while keyboard.is_pressed('f23'):
+                while keyboard.is_pressed(HOTKEY3):
                     sd.sleep(50)
                 recording = False
             print("Transcribing audio for Gemini...")
